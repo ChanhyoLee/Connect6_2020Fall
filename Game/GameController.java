@@ -37,7 +37,7 @@ public class GameController{
 			        else if(remain_time==13) SoundPackage.play_countdown3();
 			        else if(remain_time==14) SoundPackage.play_countdown2();
 			        else if(remain_time==15) SoundPackage.play_countdown1();
-			        if(remain_time == 30) {
+			        if(remain_time == 60) {
 			        	GameController.turn++;
 						GameController.possible_actionNumber=2;
 						new AutoExitFrame(GameController.turn%2);

@@ -9,9 +9,11 @@ import javax.swing.SwingConstants;
 
 import ArtificailIntelligence.Decision;
 
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import java.awt.Font;
 import java.awt.Point;
+import javax.swing.JRadioButton;
 
 public class PlayerBoard extends JPanel{
 	
@@ -30,6 +32,21 @@ public class PlayerBoard extends JPanel{
 		setLocation(770,0);
 		setSize(430,800);
 		setBackground(new Color(240, 248, 255));
+		
+		JRadioButton aiblack_radio = new JRadioButton("AI");
+		aiblack_radio.setHorizontalAlignment(SwingConstants.CENTER);
+		aiblack_radio.setBounds(52, 151, 70, 23);
+		add(aiblack_radio);
+		
+		JRadioButton aiwhite_radio = new JRadioButton("AI");
+		aiwhite_radio.setHorizontalAlignment(SwingConstants.CENTER);
+		aiwhite_radio.setBounds(294, 151, 70, 23);
+		add(aiwhite_radio);
+		aiwhite_radio.setSelected(true);
+		
+		ButtonGroup group = new ButtonGroup();
+		group.add(aiblack_radio);
+		group.add(aiwhite_radio);
 		
 		p1_label = new JLabel("Player1");
 		p1_label.setFont(new Font("Lucida Grande", Font.PLAIN, 20));
@@ -57,6 +74,7 @@ public class PlayerBoard extends JPanel{
 		add(wholeTime_label);
 		
 		JButton start_button = new JButton("Start");
+		start_button.requestFocus();
 		start_button.setFont(new Font("Lucida Grande", Font.PLAIN, 20));
 		start_button.setBounds(165, 700, 100, 40);
 		start_button.addActionListener(new ActionListener() {
@@ -65,6 +83,18 @@ public class PlayerBoard extends JPanel{
 					GameController.pause = false;
 
 					//SoundPackage.play_bgm();
+					if(aiwhite_radio.isSelected()) {
+						Decision.player = 1;
+						aiblack_radio.setEnabled(false);
+						aiblack_radio.setText("User");
+						aiwhite_radio.setEnabled(false);
+					}
+					else {
+						Decision.player = 2;
+						aiblack_radio.setEnabled(false);
+						aiwhite_radio.setText("User");
+						aiwhite_radio.setEnabled(false);
+					}
 					update_color();
 					new AutoExitFrame(AutoExitFrame.START);
 					start_button.setText("Pause");
@@ -72,7 +102,26 @@ public class PlayerBoard extends JPanel{
 					GameController.start();
 					GameController.playerTimer_start();
 					if(Decision.player==2) {
-						Tile.ai_click(new Point(9,9));
+						int i,j;
+						if(calculate_center(CheckBoard.tile_board)!=null) {
+							i=calculate_center(CheckBoard.tile_board).x;
+							j=calculate_center(CheckBoard.tile_board).y;
+						}
+						else {
+							i=9; j=9;
+						}
+						boolean is_empty = (CheckBoard.tile_board[i][j].getStone().color==Stone.EMPTY);
+						while(!is_empty) {
+							for(int dx = 0; dx<2; dx++) {
+								for(int dy=0; dy<2; dy++) {
+									i+=dx; j+=dy;
+									is_empty = (CheckBoard.tile_board[i][j].getStone().color==Stone.EMPTY);
+									if(is_empty) break;
+								}
+								if(is_empty) break;
+							}
+						}
+						Tile.ai_click(new Point(i,j));						
 					}
 				}
 				else if(start_button.getText().equals("Pause")) {
@@ -121,6 +170,7 @@ public class PlayerBoard extends JPanel{
 		status_label.setHorizontalAlignment(SwingConstants.CENTER);
 		status_label.setBounds(165, 40, 100, 25);
 		add(status_label);
+	
 		
 	}
 	
@@ -134,5 +184,18 @@ public class PlayerBoard extends JPanel{
 			p2_label.setForeground(Color.RED);
 		}
 	}
-	
+	public Point calculate_center(Tile[][] tile_board) {
+		int total_x=0, total_y=0, count =0;
+		for(int i=0; i<19; i++) {
+			for(int j=0; j<19; j++) {
+				if(tile_board[i][j].getStone().color == Stone.RED) {
+					total_x += i-9;
+					total_y += j-9;
+					count++;
+				}
+			}
+		}
+		if(count>0) return new Point(9-(total_x/count),9-(total_y/count));
+		else return null;
+	}
 }
