@@ -14,6 +14,7 @@ public class GameController{
 	public static boolean pause = true;
 	public static int turn = 1;
 	public static int possible_actionNumber=1;
+	public static final int MAXIMUM_TIME = 60;
 	
 	public GameController() {
 		whole_timer = new Timer(1000,new ActionListener() {
@@ -28,18 +29,18 @@ public class GameController{
 		        PlayerBoard.remainTime_label.setText(String.valueOf(15 - remain_time));
 		        remain_time++;
 		        if(remain_time>=10) { 
-		        	if(remain_time==10) {
+		        	if(remain_time==MAXIMUM_TIME-6) {
 			        	PlayerBoard.remainTime_label.setForeground(Color.RED);
 			        	PlayerBoard.remainTime_head.setForeground(Color.RED);
 		        	}
-		        	else if(remain_time==11) SoundPackage.play_countdown5();
-			        else if(remain_time==12) SoundPackage.play_countdown4();
-			        else if(remain_time==13) SoundPackage.play_countdown3();
-			        else if(remain_time==14) SoundPackage.play_countdown2();
-			        else if(remain_time==15) SoundPackage.play_countdown1();
-			        if(remain_time == 60) {
-			        	GameController.turn++;
-						GameController.possible_actionNumber=2;
+		        	else if(remain_time==MAXIMUM_TIME-5) SoundPackage.play_countdown5();
+			        else if(remain_time==MAXIMUM_TIME-4) SoundPackage.play_countdown4();
+			        else if(remain_time==MAXIMUM_TIME-3) SoundPackage.play_countdown3();
+			        else if(remain_time==MAXIMUM_TIME-2) SoundPackage.play_countdown2();
+			        else if(remain_time==MAXIMUM_TIME-1) SoundPackage.play_countdown1();
+			        if(remain_time == MAXIMUM_TIME) { //라운드의 최고 시간 
+			        	GameController.turn++; //시간이 넘으면 다음 플레이어에게 기회를 돌림 
+						GameController.possible_actionNumber=2; 
 						new AutoExitFrame(GameController.turn%2);
 			        	PlayerBoard.remainTime_label.setForeground(Color.BLACK);
 			        	PlayerBoard.remainTime_head.setForeground(Color.BLACK);

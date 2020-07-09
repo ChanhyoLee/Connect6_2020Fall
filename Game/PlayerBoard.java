@@ -26,6 +26,7 @@ public class PlayerBoard extends JPanel{
 	public static JLabel remainTime_head;
 	public static JLabel wholeTime_head;
 	private JLabel status_label;
+	private Decision decision = new Decision();
 	
 	public PlayerBoard() {
 		setLayout(null);
@@ -79,49 +80,50 @@ public class PlayerBoard extends JPanel{
 		start_button.setBounds(165, 700, 100, 40);
 		start_button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(start_button.getText().equals("Start")) {
-					GameController.pause = false;
+				if(start_button.getText().equals("Start")) { //스타트 누르면, 
+					GameController.pause = false; //중지상태 해제 
 					//SoundPackage.play_bgm();
-					if(aiwhite_radio.isSelected()) {
-						Decision.player = 1;
+					if(aiwhite_radio.isSelected()) { //백돌이 AI로 선택되었다면, 
+						Decision.player = 1; 
 						aiblack_radio.setEnabled(false);
 						aiblack_radio.setText("User");
 						aiwhite_radio.setEnabled(false);
 					}
-					else {
+					else { //백돌이 AI가 아니면 흑돌이 AI임 
 						Decision.player = 2;
 						aiblack_radio.setEnabled(false);
 						aiwhite_radio.setText("User");
 						aiwhite_radio.setEnabled(false);
 					}
-					Tile.update_HashMap();
+					Decision.update_HashMap(); //플레이어에 맞는 승리, 패배 해쉬맵 생성 
 					update_color();
 					new AutoExitFrame(AutoExitFrame.START);
 					start_button.setText("Pause");
 					new GameController();
 					GameController.start();
 					GameController.playerTimer_start();
-					if(Decision.player==2) {
+					if(Decision.player==2) { //흑돌일때 첫 착수 위치 결정하는 부분 
 						int i,j;
-						if(calculate_center(CheckBoard.tile_board)!=null) {
+						if(calculate_center(CheckBoard.tile_board)!=null) { //적목이 있다면,  
 							i=calculate_center(CheckBoard.tile_board).x;
-							j=calculate_center(CheckBoard.tile_board).y;
+							j=calculate_center(CheckBoard.tile_board).y; //적목들을 기준으로 가장 넓은 곳의 중심에 착수 
 						}
 						else {
-							i=9; j=9;
+							i=9; j=9; //적목이 없으면 중심,
 						}
-						boolean is_empty = (CheckBoard.tile_board[i][j].getStone().color==Stone.EMPTY);
-						while(!is_empty) {
-							for(int dx = 0; dx<2; dx++) {
+						boolean is_empty = (CheckBoard.tile_board[i][j].getStone().color==Stone.EMPTY); 
+						//최종적으로 주어진 중심이 비어있는지 확인
+						while(!is_empty) { //중심이 채워져 있다면, 
+							for(int dx = 0; dx<2; dx++) { //주변 탐색 후 빈 곳에 착수 
 								for(int dy=0; dy<2; dy++) {
 									i+=dx; j+=dy;
 									is_empty = (CheckBoard.tile_board[i][j].getStone().color==Stone.EMPTY);
-									if(is_empty) break;
+									if(is_empty) break; //새로 선택된 곳이 빈 곳이면, 반복문 탈출 
 								}
-								if(is_empty) break;
+								if(is_empty) break; //새로 선택된 곳이 빈 곳이면, 반복문 탈출 
 							}
 						}
-						Tile.ai_click(new Point(i,j));						
+						Decision.ai_click(new Point(i,j)); //중심에 착수 						
 					}
 				}
 				else if(start_button.getText().equals("Pause")) {
