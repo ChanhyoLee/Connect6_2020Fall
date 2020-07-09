@@ -10,7 +10,7 @@ public class Decision {
 
 	public static Moves CurrentOpponentMoves = new Moves(-1, -1, -1, -1); // opmove가 실행된 후 상대방의 착수를 저장하는 변수
 	public static Moves CurrentMyMoves = new Moves(-1, -1, -1, -1); // opmove가 실행된 후 상대방의 착수를 저장하는 변수
-	public static int player = 2;
+	public static int player = 1;
 	public static void RenewalOpponentMoves(int x0, int x1, int y0, int y1) {
 		CurrentOpponentMoves = new Moves(x0, y0, x1, y1);
 	}

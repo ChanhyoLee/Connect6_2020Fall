@@ -9,10 +9,7 @@ import javax.swing.JPanel;
 public class CheckBoard extends JPanel{
 
 	public static Tile[][] tile_board = new Tile[19][19];
-	JLabel background_label;
-	BufferedImage background;
-	
-	
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

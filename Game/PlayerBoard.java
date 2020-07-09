@@ -81,7 +81,6 @@ public class PlayerBoard extends JPanel{
 			public void actionPerformed(ActionEvent e) {
 				if(start_button.getText().equals("Start")) {
 					GameController.pause = false;
-
 					//SoundPackage.play_bgm();
 					if(aiwhite_radio.isSelected()) {
 						Decision.player = 1;
@@ -95,6 +94,7 @@ public class PlayerBoard extends JPanel{
 						aiwhite_radio.setText("User");
 						aiwhite_radio.setEnabled(false);
 					}
+					Tile.update_HashMap();
 					update_color();
 					new AutoExitFrame(AutoExitFrame.START);
 					start_button.setText("Pause");

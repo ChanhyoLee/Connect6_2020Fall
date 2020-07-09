@@ -57,7 +57,7 @@ public class AutoExitFrame extends JFrame{
 			exist_message.setText("RESUME!");
 		}
 		else if(type==END) {
-			exist_message.setText("Player"+GameController.turn%2+1+"WIN!!");
+			exist_message.setText("Player"+(GameController.turn%2+1)+"WIN!!");
 		}
 		else if(type==SYSTEMOUT) {
 			exist_message.setText("Thank you for Playing... Good BYE!");

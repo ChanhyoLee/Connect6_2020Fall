@@ -30,10 +30,10 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 	private BufferedImage whiteStone;
 	private BufferedImage blackStone;
 	private BufferedImage redStone;
-	private static HashMap<String, int[]> winner_condition;
-	private static HashMap<String, int[]> winner_5_condition;
-	private static HashMap<String, int[]> loser_condition;
-	private static HashMap<String, int[]> loser_5_condition;
+	public static HashMap<String, int[]> winner_condition;
+	public static HashMap<String, int[]> winner_5_condition;
+	public static HashMap<String, int[]> loser_condition;
+	public static HashMap<String, int[]> loser_5_condition;
 	public static Point first_move;
 	public static Point second_move;
 	public static Robot airobot;
@@ -44,10 +44,6 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 		redStone = ImageIO.read(new File("redStone.png"));
 		location = new Point(x,y);
 		stone = new Stone(Stone.EMPTY);
-		winner_condition = makeConnect6_hashmap(Decision.player);
-		winner_5_condition = makeConnect6_5_hashmap(Decision.player);
-		loser_condition = makeConnect6_hashmap(3-Decision.player);
-		loser_5_condition = makeConnect6_5_hashmap(3-Decision.player);
 		this.setLocation(10+x*40,10+y*40);
 		this.setSize(30,30);
 		this.setHorizontalAlignment(CENTER);
@@ -88,8 +84,8 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 				// SoundPackage.stop_bgm();
 				SoundPackage.play_winSound();
 				GameController.playerTimer_stop();
-				new AutoExitFrame(AutoExitFrame.END);
-				new AutoExitFrame(AutoExitFrame.TIMER);
+				//new AutoExitFrame(AutoExitFrame.END);
+				//new AutoExitFrame(AutoExitFrame.TIMER);
 				}
 			else {
 				GameController.possible_actionNumber--; //한 수 놓았음 
@@ -204,7 +200,7 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 		if(count==6) return true;
 		else return false;
 	}
-	public boolean horizontal_find() {
+	private boolean horizontal_find() {
 		boolean previous_find = true;
 		boolean next_find = true;
 		Tile[][] board = CheckBoard.tile_board;
@@ -255,31 +251,30 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 				}
 			}
 		}
-		if(final_moves.size()==1) {
-			System.out.printf("should_prevent 1.(%d, %d)", final_moves.get(0).x, final_moves.get(0).y);
+		if(final_moves.size()==1) { //꼭 막아야하는 수가 하나일 경우 
+			System.out.printf("should 1.(%d, %d)", final_moves.get(0).x, final_moves.get(0).y);
 		    ai_click(final_moves.get(0));
 		    board[final_moves.get(0).x][final_moves.get(0).y] = Decision.player; //필수로 방어해야하는 곳을 막음 
 			Point second_move = Find_BestSingleMove(board);	//영향력이 가장 높은 포인트에 착수
-		    System.out.printf(" 2. (%d, %d)\n", second_move.x, second_move.y); 
+		    System.out.printf(" Free 2. (%d, %d)\n", second_move.x, second_move.y); 
 		    ai_click(second_move);
 		}
-		else if(final_moves.size()>=2) {
+		else if(final_moves.size()>=2) { //꼭 막아야하는 수가 두개 이상일 경우 
 			if(final_moves.get(1).x==-1 && final_moves.get(1).y==-1) { //final moves 원소의 좌표가 -1,-1 인 경우 한 수로 방어하고 자유롭게 한 수가 남을 경우임 
-				System.out.printf("should_prevent 1.(%d, %d)", final_moves.get(0).x, final_moves.get(0).y);
+				System.out.printf("should 1.(%d, %d)", final_moves.get(0).x, final_moves.get(0).y);
 			    ai_click(final_moves.get(0));
 			    board[final_moves.get(0).x][final_moves.get(0).y] = Decision.player;
 				Point second_move = Find_BestSingleMove(board);	//영향력이 가장 높은 포인트에 착수
-			    System.out.printf(" 2. (%d, %d)\n", second_move.x, second_move.y); 
+			    System.out.printf(" 2. Free (%d, %d)\n", second_move.x, second_move.y); 
 			    ai_click(second_move);
-
 			}
-			else {
-				System.out.printf("should prevent 1.(%d, %d) 2.(%d, %d)\n", final_moves.get(0).x, final_moves.get(0).y, final_moves.get(1).x, final_moves.get(1).y);
+			else { //두어야하는 두 수가 모두 유효할 때 
+				System.out.printf("should 1.(%d, %d) should 2.(%d, %d)\n", final_moves.get(0).x, final_moves.get(0).y, final_moves.get(1).x, final_moves.get(1).y);
 				ai_click(final_moves.get(0));
 				ai_click(final_moves.get(1));
 			}
 		}
-		else {
+		else { //강제되는 수가 하나도 없을 때 
 			//영향력이 가장 높은 포인트에 착수 
 			double max_score = -100000; //초기 점수는 낮게 설정 
 			Moves best_combination = new Moves(-1,-1,-1,-1);
@@ -294,9 +289,9 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 		    		}
 		    	}
 		    }
-		    System.out.printf("1. (%d, %d)", best_combination.first_move.x, best_combination.first_move.y);
+		    System.out.printf("Free 1. (%d, %d)", best_combination.first_move.x, best_combination.first_move.y);
 		    ai_click(best_combination.first_move);
-		    System.out.printf(" 2. (%d, %d)\n", best_combination.second_move.x, best_combination.second_move.y);
+		    System.out.printf(" Free 2. (%d, %d)\n", best_combination.second_move.x, best_combination.second_move.y);
 		    ai_click(best_combination.second_move); 
 		}
 		
@@ -484,10 +479,17 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 				str_pattern = "";
 				continue;
 			}
+//			if(str_pattern.equals("222200")) {
+//				System.out.println(str_pattern);
+//				System.out.println(loser_condition.toString());
+//				System.out.println(loser_condition.containsKey(str_pattern));
+//				System.out.println((IsOutOfBounds(x+6*dx[dir],y+6*dy[dir])||board[x+6*dx[dir]][y+6*dy[dir]]!=3-Decision.player));
+//				System.out.println((IsOutOfBounds(x-1*dx[dir], y-1*dy[dir]) || board[x-1*dx[dir]][y-1*dy[dir]]!=3-Decision.player));
+//			}
 			if(loser_condition.containsKey(str_pattern) && (IsOutOfBounds(x+6*dx[dir],y+6*dy[dir])||board[x+6*dx[dir]][y+6*dy[dir]]!=3-Decision.player) && (IsOutOfBounds(x-1*dx[dir], y-1*dy[dir]) || board[x-1*dx[dir]][y-1*dy[dir]]!=3-Decision.player)) {
 				//패배 패턴 해시맵 키에 최종 문자열이 존재하고 기준점 x,y의 -1번째, 6번째 위치의 돌이 플레이어의 돌이 아닐때(장목방지)
-				//System.out.print("losing pattern check!");
-				//System.out.println(String.format("(%d, %d), (%d, %d)",x+loser_condition.get(str_pattern)[0]*dx[dir], y+loser_condition.get(str_pattern)[0]*dy[dir],x+loser_condition.get(str_pattern)[1]*dx[dir], y+loser_condition.get(str_pattern)[1]*dy[dir]));
+				System.out.print("losing pattern check!");
+				System.out.println(String.format("(%d, %d), (%d, %d)",x+loser_condition.get(str_pattern)[0]*dx[dir], y+loser_condition.get(str_pattern)[0]*dy[dir],x+loser_condition.get(str_pattern)[1]*dx[dir], y+loser_condition.get(str_pattern)[1]*dy[dir]));
 				temp_vector.add(new Point(x+loser_condition.get(str_pattern)[0]*dx[dir], y+loser_condition.get(str_pattern)[0]*dy[dir]));
 				temp_vector.add(new Point(x+loser_condition.get(str_pattern)[1]*dx[dir], y+loser_condition.get(str_pattern)[1]*dy[dir]));
 			}
@@ -550,7 +552,7 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 		return null;
 	}
 	
-	public HashMap<String, int[]> makeConnect6_hashmap(int player){ //4목이 완성되었을 때 승리패턴을 키값으로 하고 빈칸을 value값으로 가지는 해쉬맵 생성 
+	public static HashMap<String, int[]> makeConnect6_hashmap(int player){ //4목이 완성되었을 때 승리패턴을 키값으로 하고 빈칸을 value값으로 가지는 해쉬맵 생성 
 		HashMap<String, int[]> temp = new HashMap<String, int[]>();
 		if(player==1) {
 			temp.put("001111", new int[]{0,1});
@@ -590,7 +592,7 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 		return temp;
 	}
 	
-	public HashMap<String, int[]> makeConnect6_5_hashmap(int player){ //5목이 완성되었을 때 승리패턴을 키값으로 하고 빈칸을 value값으로 가지는 해쉬맵 생성 
+	public static HashMap<String, int[]> makeConnect6_5_hashmap(int player){ //5목이 완성되었을 때 승리패턴을 키값으로 하고 빈칸을 value값으로 가지는 해쉬맵 생성 
 		HashMap<String, int[]> temp = new HashMap<String, int[]>();
 		if(player==1) {
 			temp.put("011111", new int[] {0});
@@ -610,5 +612,16 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 		}
 		return temp;
 		
+	}
+	
+	public static void update_HashMap() {
+		winner_condition = makeConnect6_hashmap(Decision.player);
+		winner_5_condition = makeConnect6_5_hashmap(Decision.player);
+		loser_condition = makeConnect6_hashmap(3-Decision.player);
+		loser_5_condition = makeConnect6_5_hashmap(3-Decision.player);
+		System.out.println("Winner : " + winner_condition.toString());
+		System.out.println("Winner_5: " + winner_5_condition.toString());
+		System.out.println("Loser : " + loser_condition.toString());
+		System.out.println("Loser_5 : " + loser_5_condition.toString());
 	}
 }
