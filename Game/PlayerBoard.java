@@ -7,7 +7,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.SwingConstants;
 
-import ArtificailIntelligence.Decision;
+import ArtificialIntelligence.Decision;
 
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;

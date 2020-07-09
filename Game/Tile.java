@@ -19,8 +19,8 @@ import java.util.Vector;
 import javax.imageio.ImageIO;
 import javax.swing.JLabel;
 
-import ArtificailIntelligence.Decision;
-import ArtificailIntelligence.Moves;
+import ArtificialIntelligence.Decision;
+import ArtificialIntelligence.Moves;
 
 public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 	
@@ -62,9 +62,11 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 			}
 		}
 	}
+	public void mouseClicked() {
+		this.mouseClicked(new MouseEvent(this, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), MouseEvent.BUTTON1_DOWN_MASK, this.getLocation().x+15, this.getLocation().y, 1, false));
+	}
 	@Override 
 	public void mouseClicked(MouseEvent e) {
-		
 		this.setEnabled(false);
 		SoundPackage.play_stoneSound();
 		if(GameController.pause) {
@@ -76,24 +78,24 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 				// SoundPackage.stop_bgm();
 				SoundPackage.play_winSound();
 				GameController.playerTimer_stop();
-				//new AutoExitFrame(AutoExitFrame.END);
+				new AutoExitFrame(AutoExitFrame.END);
 				//new AutoExitFrame(AutoExitFrame.TIMER);
 				}
 			else {
 				GameController.possible_actionNumber--; //한 수 놓았음 
-				if(GameController.possible_actionNumber==0) { //주어진 수를 모두 놓았음 
-					if(GameController.turn%2==Math.abs(Decision.player-2)) Decision.find_best(); //흑돌일때 0, 백돌일때 1
+				if(GameController.possible_actionNumber==0) { //주어진 수를 모두 놓았음
 					GameController.turn++; //다음 턴으로! 
 					GameController.reset_playerTime();
 					GameController.possible_actionNumber=2;
 					//new AutoExitFrame(GameController.turn%2);
 					PlayerBoard.update_color();
+					if(GameController.turn%2==Decision.player-1) Decision.find_best(); //상대의 턴이 종료되었을때 최선의 수를 자동으로 착수 
 				}
 			}
 		}
-		repaint();
 		this.removeMouseListener(this);
 		this.removeMouseMotionListener(this);
+		repaint();
 	}
 	public void mouseDragged(MouseEvent e) {}
 	public void mouseMoved(MouseEvent e) {}
