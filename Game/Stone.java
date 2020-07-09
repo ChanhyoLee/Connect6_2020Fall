@@ -5,6 +5,7 @@ public class Stone {
 	 public static int WHITE = 1;
 	 public static int RED = -2;
 	 public static int EMPTY = 0;
+	 public static int MARK = 5;
 	 
 	 //private Shape stone_shape;
 	 public int color;

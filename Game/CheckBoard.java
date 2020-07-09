@@ -53,9 +53,9 @@ public class CheckBoard extends JPanel{
 			for(int y=0; y<19; y++) {
 				if(src[x][y].getStone().color==Stone.BLACK) dst[x][y] = Stone.BLACK;
 				else if(src[x][y].getStone().color==Stone.WHITE) dst[x][y] = Stone.WHITE;
-				if(src[x][y].getStone().color==Stone.EMPTY) dst[x][y] = Stone.EMPTY;
-
-
+				else if(src[x][y].getStone().color==Stone.EMPTY) dst[x][y] = Stone.EMPTY;
+				else if(src[x][y].getStone().color==Stone.RED) dst[x][y] = Stone.RED;
+				else if(src[x][y].getStone().color==Stone.MARK) dst[x][y] = Stone.MARK;
 			}
 		}
 	}

@@ -1,8 +1,11 @@
 package Game;
+import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.Robot;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -33,6 +36,7 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 	private static HashMap<String, int[]> loser_5_condition;
 	public static Point first_move;
 	public static Point second_move;
+	public static Robot airobot;
 	
 	public Tile(int x, int y) throws IOException {
 		whiteStone = ImageIO.read(new File("whiteStone.png"));
@@ -49,6 +53,12 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 		this.setHorizontalAlignment(CENTER);
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
+		try {
+			airobot = new Robot();
+		} catch (AWTException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void paintComponent(Graphics g) {
@@ -64,9 +74,9 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 			}
 		}
 	}
-
 	@Override 
 	public void mouseClicked(MouseEvent e) {
+		
 		this.setEnabled(false);
 		SoundPackage.play_stoneSound();
 		if(GameController.pause) {
@@ -84,11 +94,11 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 			else {
 				GameController.possible_actionNumber--;
 				if(GameController.possible_actionNumber==0) {
-					if(GameController.turn%2==Decision.player) find_best();
+					if(GameController.turn%2==1) find_best(); //흑돌일때 0, 백돌일때 1
 					GameController.turn++;
 					GameController.reset_playerTime();
 					GameController.possible_actionNumber=2;
-					new AutoExitFrame(GameController.turn%2);
+					//new AutoExitFrame(GameController.turn%2);
 					PlayerBoard.update_color();
 				}
 			}
@@ -102,7 +112,9 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 	@Override
 	public void mouseMoved(MouseEvent e) {}
 	@Override
-	public void mousePressed(MouseEvent e) {}
+	public void mousePressed(MouseEvent e) {
+
+	}
 	@Override
 	public void mouseReleased(MouseEvent e) {}
 	@Override
@@ -220,27 +232,204 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 
 	public void find_best() {
 		//System.out.println(Arrays.toString(board));
+		Vector<Point> final_moves = new Vector<Point>();
 		int[][] board = new int[19][19];
 		CheckBoard.deepCopy_Board(CheckBoard.tile_board, board);
 		for(int i=0; i<19; i++) {
 			for(int j=0; j<19; j++) {
-				if(find_pattern(i,j)!=null) { //승리할 수 있는 패턴이 존재하면 아래의 조건들은 고려하지 않아도 됨 
+				if(find_pattern(i,j)!=null) {//승리할 수 있는 패턴이 존재하면 아래의 조건들은 고려하지 않아도 됨 
+					ai_click(find_pattern(i,j).get(0));
+					ai_click(find_pattern(i,j).get(1));
 					return;
 				}
 				else {
 					if(find_threat(board, i, j).size()>0) { //승리할 수 있는 패턴이 존재하지 않을 경우, 상대가 승리할 수 있는 패턴을 찾아 수비해야함
-						 Moves.print_Moves(defend_threat()); //위협이 되는 패턴을 막을 수 있는 돌의 위치를 출력, 하나로 막을 수 있는 경우 나머지 하나는 -1,-1 로 출력, 둘다 -1,-1 일 경우 게임에서 패배한 상황 
+						Moves temp = defend_threat();
+						if(!final_moves.contains(temp.first_move)) { //중복 원소가 삽입되는 경우 걸러내기 
+							final_moves.add(temp.first_move);
+						}
+						if(!final_moves.contains(temp.second_move)) { //중복 원소가 삽입되는 경우 걸러내기 
+							final_moves.add(temp.second_move);
+						}
 					}
 				}
 			}
-		}		
+		}
+		if(final_moves.size()==1) {
+			System.out.printf("should_prevent 1.(%d, %d)", final_moves.get(0).x, final_moves.get(0).y);
+		    ai_click(final_moves.get(0));
+		    board[final_moves.get(0).x][final_moves.get(0).y] = Decision.player;
+			Point second_move = Find_BestSingleMove(board);	//영향력이 가장 높은 포인트에 착수
+		    System.out.printf(" 2. (%d, %d)\n", second_move.x, second_move.y); 
+		    ai_click(second_move);
+		}
+		else if(final_moves.size()>=2) {
+			if(final_moves.get(1).x==-1 && final_moves.get(1).y==-1) {
+				System.out.printf("should_prevent 1.(%d, %d)", final_moves.get(0).x, final_moves.get(0).y);
+			    ai_click(final_moves.get(0));
+			    board[final_moves.get(0).x][final_moves.get(0).y] = Decision.player;
+				Point second_move = Find_BestSingleMove(board);	//영향력이 가장 높은 포인트에 착수
+			    System.out.printf(" 2. (%d, %d)\n", second_move.x, second_move.y); 
+			    ai_click(second_move);
+
+			}
+			else {
+				System.out.printf("should prevent 1.(%d, %d) 2.(%d, %d)\n", final_moves.get(0).x, final_moves.get(0).y, final_moves.get(1).x, final_moves.get(1).y);
+				ai_click(final_moves.get(0));
+				ai_click(final_moves.get(1));
+			}
+		}
+		else {
+			//영향력이 가장 높은 포인트에 착수 
+//			Point first_move = Find_BestSingleMove(board);
+//		    System.out.printf("1. (%d, %d)", first_move.x, first_move.y);
+//		    ai_click(first_move);
+//			board[first_move.x][first_move.y] = Decision.player;
+//			Point second_move = Find_BestSingleMove(board);
+//		    System.out.printf(" 2. (%d, %d)\n", second_move.x, second_move.y);
+//		    ai_click(second_move);
+			double max_score = -100000;
+			Moves best_combination = new Moves(-1,-1,-1,-1);
+		    Vector<Point> all_moves = get_allPossibleMoves();
+		    for(int i=0; i<all_moves.size(); i++) {
+		    	for(int j=i+1; j<all_moves.size(); j++) {
+		    		Moves temp_moves = new Moves(all_moves.get(i), all_moves.get(j));
+		    		double now_score = calculateDoubleMove_score(temp_moves, Decision.player);
+		    		if(max_score<now_score) {
+			    		max_score = now_score;
+			    		best_combination = new Moves(all_moves.get(i), all_moves.get(j));
+		    		}
+		    	}
+		    }
+		    System.out.printf("1. (%d, %d)", best_combination.first_move.x, best_combination.first_move.y);
+		    ai_click(best_combination.first_move);
+		    System.out.printf(" 2. (%d, %d)\n", best_combination.second_move.x, best_combination.second_move.y);
+		    ai_click(best_combination.second_move); 
+		}
+		
+//		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);//좌클릭 다운
+//		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);//좌클릭 업
+//		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);//좌클릭 다운
+//		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);//좌클릭 업
 	}
 	
-	public static boolean IsOutOfBounds(int x, int y) {
+	public static void ai_click(Point first_move) {
+		airobot.mouseMove(24 + first_move.x*40, 67 + first_move.y*40);
+		airobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+		airobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+		airobot.delay(500);		
+	}
+	public static boolean IsOutOfBounds(int x, int y) { //주어진 인덱스 값이 배열의 최대, 최소 범위를 벗어나는지 판단 (바둑판 영역 밖인지 판단)
 		if (0 <= x && x <19 && 0 <= y && y < 19)
 			return false;
 		return true;
 	}
+
+	public Vector<Point> get_allPossibleMoves(){
+		Vector<Point> all_moves = new Vector<Point>();
+		
+		for(int i=0; i<19; i++) {
+			for(int j=0; j<19; j++) {
+				if(CheckBoard.tile_board[i][j].getStone().color==Stone.EMPTY) {
+					Point temp = new Point(i,j);
+					all_moves.add(temp);
+					
+				}
+			}
+		}		
+		return all_moves;	
+	}
+	
+	public double calculateDoubleMove_score(Moves myMoves, int player) {
+		int board[][] = new int[19][19];
+		CheckBoard.deepCopy_Board(CheckBoard.tile_board, board);
+	    double score = 0.0;
+	    score += calculateSingleMove_score(myMoves.first_move, player);
+	    board[myMoves.first_move.x][myMoves.first_move.y] = player; // 첫번째 착점하는 곳을 player로 채워넣고 두번째 착수에 대한 score를 합산
+	    score += calculateSingleMove_score(myMoves.second_move, player);
+	    board[myMoves.first_move.x][myMoves.first_move.y] = Stone.EMPTY; // 다시 되돌림
+	    return score;
+	}
+
+	public double calculateSingleMove_score(Point myMove, int player) {
+		double PlayerFactor[] = {0.0, 1.0, 3.96, 12.05, 0.0, 0.0}; // PlayerFactor[i] : 나의 착수로 window 안에 나의 돌 i개를 만들었을 때 score. 검은돌 4/5개는 어차피 Threat에서 알아서 카운트될테니 계산할 필요 없음
+		double OpponentFactor[] = {0.0, 1.33, 6.79, 19.52, 0.0, 0.0};// OpponentFacotr[i] : 나의 착수로 window 안에 상대 돌 i개를 저지했을 때 score. 하얀돌 4/5개를 막는건 어차피 Threat에서 걸러지므로 따로 score를 부여할 필요 없음
+		
+		int opponent = 3 - Decision.player;
+		double score = 0.0;
+		int board[][] = new int[19][19];
+		CheckBoard.deepCopy_Board(CheckBoard.tile_board, board);
+		board[myMove.x][myMove.y] = player; // Threat의 수를 쉽게 구하기 위해 일단 착수시켜둠
+		
+		
+	    int dx[] = { 1, 0, 1, 1 };
+	    int dy[] = { 0, 1, 1, -1 };
+		for(int dir=0; dir<4; dir++) { //4개 방향에 대하여, 
+			for(int i=0; i<6; i++) { //인자로 전달받은 기준점을 포함하는 모든 6개의 칸에 대하여 수행 
+	            int x = myMove.x - i * dx[dir];
+	            int y = myMove.y - i * dy[dir];
+				if(IsOutOfBounds(x,y)||IsOutOfBounds(x+5*dx[dir], y+5*dy[dir])) { 
+					//System.out.println("out of bounds!");
+					continue;
+				}
+				int playercount =0, opponentcount=0;
+				boolean isThreat = true;
+				for(int k=0; k<6; k++) {
+					//System.out.printf("myMove(%d, %d), xy(%d, %d), (%d, %d)\n",myMove.x, myMove.y, myMove.x - i * dx[dir], myMove.y - i * dy[dir],x+k*dx[dir], y+k*dy[dir]);
+					if(board[x+k*dx[dir]][y+k*dy[dir]]==Stone.RED) {
+						playercount=0;
+						opponentcount=0;
+						isThreat = false;
+						break;
+					}
+					else if(board[x+k*dx[dir]][y+k*dy[dir]]==opponent) {
+						opponentcount++;
+						isThreat = false;
+
+					}
+					else if(board[x+k*dx[dir]][y+k*dy[dir]]==Decision.player) {
+						playercount++;
+					}
+					else if(board[x+k*dx[dir]][y+k*dy[dir]]==Stone.MARK) {
+						isThreat = false;
+					}
+				}
+				
+				if(isThreat&&playercount==4 && (IsOutOfBounds(x - dx[dir], y - dy[dir]) || board[x - dx[dir]][y - dy[dir]] != player) && (IsOutOfBounds(x + 6 * dx[dir], y + 6 * dy[dir]) || board[x + 6 * dx[dir]][y + 6 * dy[dir]] != player)){
+					score += 10000.0;
+	                for (int h = 0; h < 6; h++) {
+	                    if (board[x + i*dx[dir]][y + h*dy[dir]] == Stone.EMPTY)
+	                        board[x + i*dx[dir]][y + h*dy[dir]] = Stone.MARK; // 비어있는 칸에 mark를 둠
+	                }
+		        }
+	            if (opponentcount == 0 && (IsOutOfBounds(x - dx[dir], y - dy[dir]) || board[x - dx[dir]][y - dy[dir]] != player) && (IsOutOfBounds(x + 6 * dx[dir], y + 6 * dy[dir]) || board[x + 6 * dx[dir]][y + 6 * dy[dir]] != player)) // 상대돌이 없을 때
+	                score += PlayerFactor[playercount];
+	            if (playercount== 1 && (IsOutOfBounds(x - dx[dir], y - dy[dir]) || board[x - dx[dir]][y - dy[dir]] != opponent) && (IsOutOfBounds(x + 6 * dx[dir], y + 6 * dy[dir]) || board[x + 6 * dx[dir]][y + 6 * dy[dir]] != opponent)) // 내 돌이 없는(자기자신때문에 값은 1) window일 경우.(즉 상대의 6목을 저지했음)
+	                score += OpponentFactor[opponentcount];
+				
+			}			
+		}
+		return score;
+	}
+	
+	public Point Find_BestSingleMove(int[][] board) {
+	    double maxscore = -1.0;
+	    Point bestmove = new Point(-1, -1);
+	    for (int x = 0; x < 19; x++) {
+	        for (int y = 0; y < 19; y++) {
+	            if (board[x][y] != Stone.EMPTY)
+	                continue;
+	            double tmpScore = calculateSingleMove_score(new Point(x,y), Decision.player);
+	            if (tmpScore >= maxscore && Math.abs(19 / 2 - x) + Math.abs(19 / 2 - y) < Math.abs(19/ 2 - bestmove.x) + Math.abs(19 / 2 - bestmove.y)) {
+	                bestmove = new Point(x,y);
+	                maxscore = tmpScore;
+	            }
+	        }
+	    }
+	    //System.out.printf("(%d, %d)", bestmove.x, bestmove.y);
+	    return bestmove;
+	}
+	 
 	
 	private Moves defend_threat() {
 		int[][] board = new int[19][19];
@@ -250,33 +439,37 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 		Moves forced_moves = new Moves(-1,-1,-1,-1);
 		for(int i=0; i<19; i++) {
 			for(int j=0; j<19; j++) {
-				threat_vector.addAll(find_threat(board, i,j));
+				for(Point p: find_threat(board, i ,j)) {
+					if(!threat_vector.contains(p)) threat_vector.add(p);//꼭 막아야하는 포인트 벡터 생성
+				} 
 			}
 		}
-		//System.out.println("original_count"+threat_vector.size());
-		for(int i=0; i<threat_vector.size(); i++) {
-			if(threat_vector.get(i).x==-1 || threat_vector.get(i).y==-1);
-			else board[threat_vector.get(i).x][threat_vector.get(i).y]= Decision.player; 
-			for(int j=i+1; j<threat_vector.size(); j++) {
+		//System.out.println("original vector size: "+threat_vector.size());
+		for(int i=0; i<threat_vector.size(); i++) { //위협(막아야하는) 포인트벡터 전체 원소 중 두개의 원소를 뽑아 놓았다고 가정 
+			for(int j=i; j<threat_vector.size(); j++) {
+				if(threat_vector.get(i).x==-1 || threat_vector.get(i).y==-1);
+				else board[threat_vector.get(i).x][threat_vector.get(i).y]= Decision.player; 
 				if(threat_vector.get(j).x==-1 || threat_vector.get(j).y==-1);
 				else board[threat_vector.get(j).x][threat_vector.get(j).y]= Decision.player;
+				//print_BOARD(board);
 				for(int x=0; x<19; x++) {
 					for(int y=0; y<19; y++) {
-						after_threat_vector.addAll(find_threat(board, x, y));
+						after_threat_vector.addAll(find_threat(board, x, y)); //놓았다고 가정 했을 때 위협 포인트 벡터 생성 
 					}
 				}
-				if(after_threat_vector.size()==0) {
-					forced_moves = new Moves(threat_vector.get(i), threat_vector.get(j));
+				//System.out.printf("(%s, %s) after vector size: %d\n", threat_vector.get(i), threat_vector.get(j), after_threat_vector.size());
+				if(after_threat_vector.size()==0) { //위협 포인트 벡터의 크기가 0이라는 것은 꼭 막아야하는 수가 없다는 의미, 즉 가정한 두 가지 원소의 위치에 강제적으로 놓아야함 
+					forced_moves = new Moves(threat_vector.get(i), threat_vector.get(j)); 
 					return forced_moves;
 				}
 				else {
-					forced_moves = new Moves(-1,-1,-1,-1);
-					CheckBoard.deepCopy_Board(CheckBoard.tile_board, board);
-					after_threat_vector.clear();
+					forced_moves = new Moves(-1,-1,-1,-1); //초기화 
+					CheckBoard.deepCopy_Board(CheckBoard.tile_board, board); //초기화 
+					after_threat_vector.clear(); //초기화 
 				}
 			}
 		}	
-		return forced_moves;
+		return forced_moves; //여기에 도달했다는 것은 모든 경우의 수를 생각하여도 상대의 승리를 막을 수 없음 
 	}
 	private Vector<Point> find_threat(int[][] board, int x, int y) {
 		Vector<Point> temp_vector = new Vector<Point>();
@@ -293,7 +486,13 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 					str_pattern+=String.valueOf(board[x+i*dx[dir]][y+i*dy[dir]]); //한 칸을 문자열에 이어붙이기 
 				}
 			}
-			//System.out.println(dir+": "+str_pattern);
+			if(str_pattern.length()==6) {
+				//System.out.println("string: "+str_pattern);
+			}
+			else {
+				str_pattern = "";
+				continue;
+			}
 			if(loser_condition.containsKey(str_pattern) && (IsOutOfBounds(x+6*dx[dir],y+6*dy[dir])||board[x+6*dx[dir]][y+6*dy[dir]]!=3-Decision.player) && (IsOutOfBounds(x-1*dx[dir], y-1*dy[dir]) || board[x-1*dx[dir]][y-1*dy[dir]]!=3-Decision.player)) {
 				//패배 패턴 해시맵 키에 최종 문자열이 존재하고 기준점 x,y의 -1번째, 6번째 위치의 돌이 플레이어의 돌이 아닐때(장목방지)
 				//System.out.print("losing pattern check!");
@@ -310,7 +509,7 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 			}
 			str_pattern = ""; //다음 방향을 탐색하기 위해 문자열 초기화 
 		}
-		
+		//System.out.println("size: "+temp_vector.size());
 		return temp_vector;
 		
 	}
@@ -342,7 +541,7 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 			if(winner_condition.containsKey(str_pattern) && (IsOutOfBounds(x+6*dx[dir],y+6*dy[dir])||board[x+6*dx[dir]][y+6*dy[dir]]!=Decision.player) && (IsOutOfBounds(x-1*dx[dir], y-1*dy[dir]) || board[x-1*dx[dir]][y-1*dy[dir]]!=Decision.player)) {
 				//승리패턴 해시맵 키에 최종 문자열이 존재하고 기준점 x,y의 -1번째, 6번째 위치의 돌이 플레이어의 돌이 아닐때(장목방지)
 				System.out.print("winning pattern check!");
-				System.out.println(String.format("(%d, %d), (%d, %d)",x+winner_condition.get(str_pattern)[0]*dx[dir], y+winner_condition.get(str_pattern)[0]*dy[dir],x+winner_condition.get(str_pattern)[1]*dx[dir], y+winner_condition.get(str_pattern)[1]*dy[dir]));
+				System.out.println(String.format("1.(%d, %d), 2.(%d, %d)",x+winner_condition.get(str_pattern)[0]*dx[dir], y+winner_condition.get(str_pattern)[0]*dy[dir],x+winner_condition.get(str_pattern)[1]*dx[dir], y+winner_condition.get(str_pattern)[1]*dy[dir]));
 				temp_vector.add(new Point(x+winner_condition.get(str_pattern)[0]*dx[dir], y+winner_condition.get(str_pattern)[0]*dy[dir]));
 				temp_vector.add(new Point(x+winner_condition.get(str_pattern)[1]*dx[dir], y+winner_condition.get(str_pattern)[1]*dy[dir]));
 				return temp_vector; //결과값이 한개 이상 도출되었으므로 종료 
@@ -350,8 +549,8 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 			else if(winner_5_condition.containsKey(str_pattern) && (IsOutOfBounds(x+6*dx[dir],y+6*dy[dir])||board[x+6*dx[dir]][y+6*dy[dir]]!=Decision.player) && (IsOutOfBounds(x-1*dx[dir], y-1*dy[dir]) || board[x-1*dx[dir]][y-1*dy[dir]]!=Decision.player)) {
 				//이미 5목이면서 기준점 x,y의 -1번째, 6번째 위치이 돌이 플레이어의 돌이 아닐때(장목방지)
 				System.out.print("winning pattern check!");
-				System.out.println(String.format("(%d, %d)",x+winner_5_condition.get(str_pattern)[0]*dx[dir], y+winner_5_condition.get(str_pattern)[0]*dy[dir]));
-				temp_vector.add(new Point(x+winner_condition.get(str_pattern)[0]*dx[dir], y+winner_condition.get(str_pattern)[0]*dy[dir]));
+				System.out.println(String.format("1.(%d, %d)",x+winner_5_condition.get(str_pattern)[0]*dx[dir], y+winner_5_condition.get(str_pattern)[0]*dy[dir]));
+				temp_vector.add(new Point(x+winner_5_condition.get(str_pattern)[0]*dx[dir], y+winner_5_condition.get(str_pattern)[0]*dy[dir]));
 				temp_vector.add(new Point(-1, -1)); //나머지 한 개는 영향이 없는 다른 위치에 착수  
 				return temp_vector; //결과값이 한개 이상 도출되었으므로 종료 
 			}

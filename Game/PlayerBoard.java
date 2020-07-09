@@ -6,8 +6,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.SwingConstants;
+
+import ArtificailIntelligence.Decision;
+
 import javax.swing.ImageIcon;
 import java.awt.Font;
+import java.awt.Point;
 
 public class PlayerBoard extends JPanel{
 	
@@ -59,6 +63,7 @@ public class PlayerBoard extends JPanel{
 			public void actionPerformed(ActionEvent e) {
 				if(start_button.getText().equals("Start")) {
 					GameController.pause = false;
+
 					//SoundPackage.play_bgm();
 					update_color();
 					new AutoExitFrame(AutoExitFrame.START);
@@ -66,6 +71,9 @@ public class PlayerBoard extends JPanel{
 					new GameController();
 					GameController.start();
 					GameController.playerTimer_start();
+					if(Decision.player==2) {
+						Tile.ai_click(new Point(9,9));
+					}
 				}
 				else if(start_button.getText().equals("Pause")) {
 					GameController.pause = true;

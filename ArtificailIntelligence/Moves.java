@@ -20,4 +20,14 @@ public class Moves {
 	public static void print_Moves(Moves tmp2) {
 	    System.out.printf("(%d, %d), (%d, %d)\n", tmp2.first_move.x, tmp2.first_move.y, tmp2.second_move.x, tmp2.second_move.y);
 	}
+	
+	@Override
+	public int hashCode() {
+		int result = 0;
+		result += first_move.x * 17 +13;
+		result += first_move.y * 17 +13;
+		result += second_move.x * 17 +13;
+		result += second_move.x * 17 +13;
+		return result;
+	}
 }
