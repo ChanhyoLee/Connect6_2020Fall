@@ -98,18 +98,9 @@ public class Decision {
 		    System.out.printf(" Free 2. (%d, %d)\n", best_combination.second_move.x, best_combination.second_move.y);
 		    ai_click(best_combination.second_move); 
 		}
-		
-//		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);//좌클릭 다운
-//		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);//좌클릭 업
-//		robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);//좌클릭 다운
-//		robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);//좌클릭 업
 	}
 	
 	public static void ai_click(Point first_move) { //자동으로 화면 클릭하는 robot 
-//		airobot.mouseMove(24 + first_move.x*40, 67 + first_move.y*40);
-//		airobot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-//		airobot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-//		airobot.delay(500);
 		if(first_move.x!=-1&&first_move.y!=-1) CheckBoard.tile_board[first_move.x][first_move.y].mouseClicked();
 	}
 	public static boolean IsOutOfBounds(int x, int y) { //주어진 인덱스 값이 배열의 최대, 최소 범위를 벗어나는지 판단 (바둑판 영역 밖인지 판단)
@@ -147,7 +138,7 @@ public class Decision {
 	public static double calculateSingleMove_score(Point myMove) { // 한 수의 점수 최대값을 계산 
 		double PlayerFactor[] = {0.0, 1.0, 3.96, 12.05, 0.0, 0.0}; // PlayerFactor[i] : 나의 착수로 window 안에 나의 돌 i개를 만들었을 때 score. 검은돌 4/5개는 어차피 Threat에서 알아서 카운트될테니 계산할 필요 없음
 		double OpponentFactor[] = {0.0, 1.33, 6.79, 19.52, 0.0, 0.0};// OpponentFacotr[i] : 나의 착수로 window 안에 상대 돌 i개를 저지했을 때 score. 하얀돌 4/5개를 막는건 어차피 Threat에서 걸러지므로 따로 score를 부여할 필요 없음
-		
+		if(myMove.x==-1 && myMove.y==-1) return 0.0;
 		int opponent = 3 - player;
 		double score = 0.0;
 		int board[][] = new int[19][19];
@@ -244,7 +235,7 @@ public class Decision {
 				if(threat_vector.get(j).x==-1 || threat_vector.get(j).y==-1);
 				else board[threat_vector.get(j).x][threat_vector.get(j).y]= player;
 				//print_BOARD(board);
-				for(int x=0; x<19; x++) {
+				for(int x=0; x<19; x++) { 
 					for(int y=0; y<19; y++) {
 						after_threat_vector.addAll(find_threat(board, x, y)); //놓았다고 가정 했을 때 위협 포인트 벡터 생성 
 					}
@@ -338,7 +329,7 @@ public class Decision {
 		//int[] pattern = new int[6];
 		String str_pattern = "";
 		
-		int[] dx = { -1, 0, 1, 1 };
+		int[] dx = { -1, 0, 1, 1 }; //4개 방향의 변화량, 인덱스 별로 구분 
 		int[] dy = { 1, 1, 1, 0 };
 		
 		for(int dir=0; dir<4; dir++) { //4개 방향에 대하여, 
@@ -436,10 +427,10 @@ public class Decision {
 		winner_5_condition = makeConnect6_5_hashmap(player);
 		loser_condition = makeConnect6_hashmap(3-player);
 		loser_5_condition = makeConnect6_5_hashmap(3-player);
-		System.out.println("Winner : " + winner_condition.toString());
-		System.out.println("Winner_5: " + winner_5_condition.toString());
-		System.out.println("Loser : " + loser_condition.toString());
-		System.out.println("Loser_5 : " + loser_5_condition.toString());
+//		System.out.println("Winner : " + winner_condition.toString());
+//		System.out.println("Winner_5: " + winner_5_condition.toString());
+//		System.out.println("Loser : " + loser_condition.toString());
+//		System.out.println("Loser_5 : " + loser_5_condition.toString());
 	}
 
 }

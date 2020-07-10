@@ -27,9 +27,9 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 	//private Shape tile_shape;
 	private Point location; //각 타일의 인덱스(좌표아님) 저장하는 포인트 
 	private Stone stone; //타일에 저장된 Stone 
-	private BufferedImage whiteStone;
-	private BufferedImage blackStone;
-	private BufferedImage redStone;
+	private static BufferedImage whiteStone;
+	private static BufferedImage blackStone;
+	private static BufferedImage redStone;
 
 	public static Point first_move;
 	public static Point second_move;
@@ -83,12 +83,13 @@ public class Tile extends JLabel implements MouseListener, MouseMotionListener{
 				}
 			else {
 				GameController.possible_actionNumber--; //한 수 놓았음 
+				//PlayerBoard.update_color();
 				if(GameController.possible_actionNumber==0) { //주어진 수를 모두 놓았음
 					GameController.turn++; //다음 턴으로! 
 					GameController.reset_playerTime();
 					GameController.possible_actionNumber=2;
-					//new AutoExitFrame(GameController.turn%2);
 					PlayerBoard.update_color();
+					//new AutoExitFrame(GameController.turn%2);
 					if(GameController.turn%2==Decision.player-1) Decision.find_best(); //상대의 턴이 종료되었을때 최선의 수를 자동으로 착수 
 				}
 			}

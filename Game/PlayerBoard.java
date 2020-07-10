@@ -26,7 +26,6 @@ public class PlayerBoard extends JPanel{
 	public static JLabel remainTime_head;
 	public static JLabel wholeTime_head;
 	private JLabel status_label;
-	private Decision decision = new Decision();
 	
 	public PlayerBoard() {
 		setLayout(null);
