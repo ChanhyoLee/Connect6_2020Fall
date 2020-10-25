@@ -24,13 +24,11 @@ public class Decision {
 		try {
 			airobot = new Robot();
 		} catch (AWTException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	public static void find_best() { //최고의 수를 실행, 각 단계의 로직을 병합하는 부분 
-		//System.out.println(Arrays.toString(board));
 		Vector<Point> final_moves = new Vector<Point>();
 		int[][] board = new int[19][19];
 		CheckBoard.deepCopy_Board(CheckBoard.tile_board, board); //보드 카피 
@@ -164,7 +162,6 @@ public class Decision {
 				int playercount =0, opponentcount=0; //6칸안에 존재하는 내 돌과 상대의 돌의 개수 
 				boolean isThreat = true;
 				for(int k=0; k<6; k++) {
-					//System.out.printf("myMove(%d, %d), xy(%d, %d), (%d, %d)\n",myMove.x, myMove.y, myMove.x - i * dx[dir], myMove.y - i * dy[dir],x+k*dx[dir], y+k*dy[dir]);
 					if(board[x+k*dx[dir]][y+k*dy[dir]]==Stone.RED) { //적돌이 6칸 안에 있을 경우 죽은 공간임 
 						playercount=0;
 						opponentcount=0;
@@ -233,7 +230,6 @@ public class Decision {
 		}
 		Vector<Moves> candidate_moves = new Vector<Moves>();
 		Vector<Moves> second_candidate_moves = new Vector<Moves>();
-		//System.out.println("original vector size: "+threat_vector.size());
 		for(int i=0; i<threat_vector.size(); i++) { //위협(막아야하는) 포인트벡터 전체 원소 중 두개의 원소를 뽑아 놓았다고 가정 
 			for(int j=i; j<threat_vector.size(); j++) {
 				if(threat_vector.get(i).x==-1 || threat_vector.get(i).y==-1);
@@ -246,10 +242,7 @@ public class Decision {
 						after_threat_vector.addAll(find_threat(board, x, y)); //놓았다고 가정 했을 때 위협 포인트 벡터 생성 
 					}
 				}
-				//System.out.printf("(%s, %s) after vector size: %d\n", threat_vector.get(i), threat_vector.get(j), after_threat_vector.size());
 				if(after_threat_vector.size()==0) { //위협 포인트 벡터의 크기가 0이라는 것은 꼭 막아야하는 수가 없다는 의미, 즉 가정한 두 가지 원소의 위치에 강제적으로 놓아야함 
-//					forced_moves = new Moves(threat_vector.get(i), threat_vector.get(j)); 
-//					return forced_moves;
 					candidate_moves.add(new Moves(threat_vector.get(i), threat_vector.get(j)));
 				}
 				else if(after_threat_vector.size()>0){ //위협 포인트 벡터의 크기가 0보다 크다는 것은 막아야하는 곳이 두 군데 이상임을 말함 - 패배, 하지만 상대가 이기는 수를 발견하지 못할 경우를 대비해 차선책을 
@@ -270,12 +263,6 @@ public class Decision {
 			}
 		}
 		else if(second_candidate_moves.size()>0){ //차선책들 중에 최선!
-//			for(Moves temp_moves: second_candidate_moves) {
-//				if(topScore<calculateDoubleMove_score(temp_moves)) { //꼭 막아야하는 생성된 모든 경우의 수 중에서 가장 높은 점수로 막을 수 있는 수를 찾음  
-//					forced_moves = temp_moves;
-//					topScore = calculateDoubleMove_score(temp_moves); //Version2
-//				}
-//			}
 			forced_moves = second_candidate_moves.lastElement();
 		}
 
@@ -284,8 +271,6 @@ public class Decision {
 	}
 	private static Vector<Point> find_threat(int[][] board, int x, int y) { //상대의 위협(승리조건)을 만족하는 위치를 반환 
 		Vector<Point> temp_vector = new Vector<Point>();
-		
-		//int[] pattern = new int[6];
 		String str_pattern = "";
 		
 		int[] dx = { -1, 0, 1, 1 };
@@ -297,36 +282,23 @@ public class Decision {
 					str_pattern+=String.valueOf(board[x+i*dx[dir]][y+i*dy[dir]]); //한 칸을 문자열에 이어붙이기 
 				}
 			}
-			if(str_pattern.length()==6) {
-				//System.out.println("string: "+str_pattern);
-			}
+			if(str_pattern.length()==6) {}
 			else {
 				str_pattern = "";
 				continue;
 			}
 			if(loser_condition.containsKey(str_pattern) && (IsOutOfBounds(x+6*dx[dir],y+6*dy[dir])||board[x+6*dx[dir]][y+6*dy[dir]]!=3-player) && (IsOutOfBounds(x-1*dx[dir], y-1*dy[dir]) || board[x-1*dx[dir]][y-1*dy[dir]]!=3-player)) {
 				//패배 패턴 해시맵 키에 최종 문자열이 존재하고 기준점 x,y의 -1번째, 6번째 위치의 돌이 상대 플레이어의 돌이 아닐때(장목방지)
-//				System.out.print("losing pattern check!");
-//				System.out.println(String.format("(%d, %d), (%d, %d)",x+loser_condition.get(str_pattern)[0]*dx[dir], y+loser_condition.get(str_pattern)[0]*dy[dir],x+loser_condition.get(str_pattern)[1]*dx[dir], y+loser_condition.get(str_pattern)[1]*dy[dir]));
 				temp_vector.add(new Point(x+loser_condition.get(str_pattern)[0]*dx[dir], y+loser_condition.get(str_pattern)[0]*dy[dir]));
-//				int[][] updated_board = new int[19][19];
-//				deepCopy_board(board, updated_board);
-//				updated_board[x+loser_condition.get(str_pattern)[0]*dx[dir]][y+loser_condition.get(str_pattern)[0]*dy[dir]] = player;
-//				if(find_threat(updated_board,x,y).size()>0) {
-//					temp_vector.add(find_threat(updated_board,x,y).get(0));
-//				}
 				temp_vector.add(new Point(x+loser_condition.get(str_pattern)[1]*dx[dir], y+loser_condition.get(str_pattern)[1]*dy[dir]));
 			}
 			else if(loser_5_condition.containsKey(str_pattern) && (IsOutOfBounds(x+6*dx[dir],y+6*dy[dir])||board[x+6*dx[dir]][y+6*dy[dir]]!=3-player) && (IsOutOfBounds(x-1*dx[dir], y-1*dy[dir]) || board[x-1*dx[dir]][y-1*dy[dir]]!=3-player)) {
 				//이미 5목이면서 기준점 x,y의 -1번째, 6번째 위치이 돌이 플레이어의 돌이 아닐때(장목방지)
-				//System.out.print("losing pattern check!");
-				//System.out.println(String.format("(%d, %d)",x+loser_5_condition.get(str_pattern)[0]*dx[dir], y+loser_5_condition.get(str_pattern)[0]*dy[dir]));
 				temp_vector.add(new Point(x+loser_5_condition.get(str_pattern)[0]*dx[dir], y+loser_5_condition.get(str_pattern)[0]*dy[dir]));
 				temp_vector.add(new Point(-1, -1));
 			}
 			str_pattern = ""; //다음 방향을 탐색하기 위해 문자열 초기화 
 		}
-		//System.out.println("size: "+temp_vector.size());
 		return temp_vector;
 		
 	}
@@ -348,8 +320,6 @@ public class Decision {
 		int[][] board = new int[19][19];
 		CheckBoard.deepCopy_Board(CheckBoard.tile_board, board); 
 		Vector<Point> temp_vector = new Vector<Point>();
-		
-		//int[] pattern = new int[6];
 		String str_pattern = "";
 		
 		int[] dx = { -1, 0, 1, 1 }; //4개 방향의 변화량, 인덱스 별로 구분 
@@ -361,7 +331,6 @@ public class Decision {
 					str_pattern+=String.valueOf(board[x+i*dx[dir]][y+i*dy[dir]]); //한 칸을 문자열에 이어붙이기 
 				}
 			}
-			//System.out.println(dir+": "+str_pattern);
 			if(winner_condition.containsKey(str_pattern) && (IsOutOfBounds(x+6*dx[dir],y+6*dy[dir])||board[x+6*dx[dir]][y+6*dy[dir]]!=player) && (IsOutOfBounds(x-1*dx[dir], y-1*dy[dir]) || board[x-1*dx[dir]][y-1*dy[dir]]!=player)) {
 				//승리패턴 해시맵 키에 최종 문자열이 존재하고 기준점 x,y의 -1번째, 6번째 위치의 돌이 플레이어의 돌이 아닐때(장목방지)
 				System.out.print("winning pattern check!");
@@ -450,10 +419,6 @@ public class Decision {
 		winner_5_condition = makeConnect6_5_hashmap(player);
 		loser_condition = makeConnect6_hashmap(3-player);
 		loser_5_condition = makeConnect6_5_hashmap(3-player);
-//		System.out.println("Winner : " + winner_condition.toString());
-//		System.out.println("Winner_5: " + winner_5_condition.toString());
-//		System.out.println("Loser : " + loser_condition.toString());
-//		System.out.println("Loser_5 : " + loser_5_condition.toString());
 	}
 
 }
