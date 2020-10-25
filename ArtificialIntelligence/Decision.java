@@ -55,10 +55,15 @@ public class Decision {
 				}
 			}
 		}
-		if(final_moves.size()==1) { //꼭 막아야하는 수가 하나일 경우 
-			System.out.printf("should 1.(%d, %d)", final_moves.get(0).x, final_moves.get(0).y);
-		    ai_click(final_moves.get(0));
-		    board[final_moves.get(0).x][final_moves.get(0).y] = player; //필수로 방어해야하는 곳을 막음 
+		if(final_moves.size()==1) {
+			try {//꼭 막아야하는 수가 하나일 경우 
+				System.out.printf("should 1.(%d, %d)", final_moves.get(0).x, final_moves.get(0).y);
+				ai_click(final_moves.get(0));
+			    board[final_moves.get(0).x][final_moves.get(0).y] = player; //필수로 방어해야하는 곳을 막음 
+		    }catch(Exception e) {
+			    System.out.println("Lose....But Second Best");
+			    return;
+		    }
 			Point second_move = Find_BestSingleMove(board);	//영향력이 가장 높은 포인트에 착수
 		    System.out.printf(" Free 2. (%d, %d)\n", second_move.x, second_move.y); 
 		    ai_click(second_move);
@@ -227,6 +232,7 @@ public class Decision {
 			}
 		}
 		Vector<Moves> candidate_moves = new Vector<Moves>();
+		Vector<Moves> second_candidate_moves = new Vector<Moves>();
 		//System.out.println("original vector size: "+threat_vector.size());
 		for(int i=0; i<threat_vector.size(); i++) { //위협(막아야하는) 포인트벡터 전체 원소 중 두개의 원소를 뽑아 놓았다고 가정 
 			for(int j=i; j<threat_vector.size(); j++) {
@@ -246,17 +252,34 @@ public class Decision {
 //					return forced_moves;
 					candidate_moves.add(new Moves(threat_vector.get(i), threat_vector.get(j)));
 				}
+				else if(after_threat_vector.size()>0){ //위협 포인트 벡터의 크기가 0보다 크다는 것은 막아야하는 곳이 두 군데 이상임을 말함 - 패배, 하지만 상대가 이기는 수를 발견하지 못할 경우를 대비해 차선책을 
+					second_candidate_moves.add(new Moves(threat_vector.get(i), threat_vector.get(j)));
+				}
 				forced_moves = new Moves(-1,-1,-1,-1); //초기화 
 				CheckBoard.deepCopy_Board(CheckBoard.tile_board, board); //초기화 
 				after_threat_vector.clear(); //초기화 	
 			}
 		}
 		double topScore = -100000.0;
-		for(Moves temp_moves: candidate_moves) {
-			if(topScore<calculateDoubleMove_score(temp_moves)) { //꼭 막아야하는 생성된 모든 경우의 수 중에서 가장 높은 점수로 막을 수 있는 수를 찾음  
-				forced_moves = temp_moves;
+		if(candidate_moves.size()>0) {
+			for(Moves temp_moves: candidate_moves) {
+				if(topScore<calculateDoubleMove_score(temp_moves)) { //꼭 막아야하는 생성된 모든 경우의 수 중에서 가장 높은 점수로 막을 수 있는 수를 찾음  
+					forced_moves = temp_moves;
+					topScore = calculateDoubleMove_score(temp_moves); //Version2
+				}
 			}
 		}
+		else if(second_candidate_moves.size()>0){ //차선책들 중에 최선!
+//			for(Moves temp_moves: second_candidate_moves) {
+//				if(topScore<calculateDoubleMove_score(temp_moves)) { //꼭 막아야하는 생성된 모든 경우의 수 중에서 가장 높은 점수로 막을 수 있는 수를 찾음  
+//					forced_moves = temp_moves;
+//					topScore = calculateDoubleMove_score(temp_moves); //Version2
+//				}
+//			}
+			forced_moves = second_candidate_moves.lastElement();
+		}
+
+		System.out.printf("(%d, %d), (%d, %d)\n", forced_moves.first_move.x, forced_moves.first_move.y, forced_moves.second_move.x, forced_moves.second_move.y);
 		return forced_moves; 
 	}
 	private static Vector<Point> find_threat(int[][] board, int x, int y) { //상대의 위협(승리조건)을 만족하는 위치를 반환 
